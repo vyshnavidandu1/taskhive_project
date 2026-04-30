@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% block title %}{{ action }} Task{% endblock %}
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'project_list' %}">Projects</a></li>
+<li class="breadcrumb-item"><a href="{% url 'project_detail' project.pk %}">{{ project.name }}</a></li>
+<li class="breadcrumb-item active">{{ action }} Task</li>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">{{ action }} Task</h1>
+    <p class="page-subtitle">Project: <a href="{% url 'project_detail' project.pk %}">{{ project.name }}</a></p>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <div class="card">
+            <div class="card-body p-4">
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label fw-medium">Task Title <span class="text-danger">*</span></label>
+                            {{ form.title }}
+                            {% if form.title.errors %}<div class="text-danger small mt-1">{{ form.title.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-medium">Description</label>
+                            {{ form.description }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium">Assigned To</label>
+                            {{ form.assigned_user }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium">Deadline</label>
+                            {{ form.deadline }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium">Priority</label>
+                            {{ form.priority }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium">Status</label>
+                            {{ form.status }}
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2 mt-4">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg me-1"></i>{{ action }} Task
+                        </button>
+                        <a href="{% if task %}{% url 'task_detail' task.pk %}{% else %}{% url 'project_detail' project.pk %}{% endif %}"
+                           class="btn btn-outline-secondary">Cancel</a>
+                        {% if task and request.user.is_admin %}
+                        <a href="{% url 'task_delete' task.pk %}" class="btn btn-outline-danger ms-auto">
+                            <i class="bi bi-trash me-1"></i>Delete
+                        </a>
+                        {% endif %}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

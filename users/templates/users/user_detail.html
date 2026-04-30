@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% block title %}{{ profile_user.username }}{% endblock %}
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'user_list' %}">Users</a></li>
+<li class="breadcrumb-item active">{{ profile_user.username }}</li>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">User: {{ profile_user.get_full_name|default:profile_user.username }}</h1>
+    <a href="{% url 'user_edit' profile_user.pk %}" class="btn btn-primary">
+        <i class="bi bi-pencil me-1"></i>Edit User
+    </a>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-4">
+        <div class="card text-center">
+            <div class="card-body py-5">
+                <div class="avatar-placeholder-lg mb-3">
+                    {{ profile_user.first_name|first|upper }}{{ profile_user.last_name|first|upper }}
+                </div>
+                <h4 class="fw-bold mb-1">{{ profile_user.get_full_name|default:profile_user.username }}</h4>
+                <span class="badge bg-primary-subtle text-primary mb-2">{{ profile_user.get_role_display }}</span>
+                {% if not profile_user.is_active %}
+                <span class="badge bg-danger d-block mb-2">Inactive</span>
+                {% endif %}
+                {% if profile_user.bio %}
+                <p class="text-muted small">{{ profile_user.bio }}</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header"><h6 class="mb-0 fw-semibold">Account Info</h6></div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-sm-6">
+                        <label class="form-label text-muted small">Username</label>
+                        <p class="fw-medium mb-0">{{ profile_user.username }}</p>
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label text-muted small">Email</label>
+                        <p class="fw-medium mb-0">{{ profile_user.email|default:"—" }}</p>
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label text-muted small">Phone</label>
+                        <p class="fw-medium mb-0">{{ profile_user.phone|default:"—" }}</p>
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label text-muted small">Joined</label>
+                        <p class="fw-medium mb-0">{{ profile_user.date_joined|date:"F j, Y" }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

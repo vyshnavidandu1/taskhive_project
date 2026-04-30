@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% block title %}Login{% endblock %}
+
+{% block auth_content %}
+<div class="auth-orb auth-orb-1"></div>
+<div class="auth-orb auth-orb-2"></div>
+<div class="auth-orb auth-orb-3"></div>
+
+<div class="auth-page">
+    <div class="auth-card">
+        <div class="auth-brand">
+            <div class="auth-brand__icon"><i class="bi bi-hexagon-fill"></i></div>
+            <h1 class="auth-brand__name">TaskHive</h1>
+            <p class="auth-brand__tagline">Collaborative Task &amp; Project Manager</p>
+        </div>
+
+        <h2 class="auth-title">Welcome back</h2>
+        <p class="auth-subtitle">Sign in to your workspace</p>
+
+        <form method="post" novalidate>
+            {% csrf_token %}
+            <div class="mb-3">
+                <label class="form-label">Username</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-person"></i></span>
+                    {{ form.username }}
+                </div>
+                {% if form.username.errors %}
+                <div class="small mt-1" style="color:#f87171">{{ form.username.errors.0 }}</div>
+                {% endif %}
+            </div>
+            <div class="mb-4">
+                <label class="form-label">Password</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                    {{ form.password }}
+                    <button class="btn btn-outline-secondary" type="button" id="togglePwd"
+                        style="border-left:none;border-radius:0 12px 12px 0;background:rgba(255,255,255,0.06);border-color:rgba(255,255,255,0.1);color:#94a3b8">
+                        <i class="bi bi-eye" id="eyeIcon"></i>
+                    </button>
+                </div>
+                {% if form.non_field_errors %}
+                <div class="small mt-2 p-2 rounded"
+                    style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:#f87171">
+                    <i class="bi bi-exclamation-circle me-1"></i>{{ form.non_field_errors.0 }}
+                </div>
+                {% endif %}
+            </div>
+            <button type="submit" class="btn btn-primary w-100">
+                <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.getElementById('togglePwd').addEventListener('click', function () {
+        var p = document.querySelector('input[name="password"]');
+        var i = document.getElementById('eyeIcon');
+        if (p.type === 'password') { p.type = 'text'; i.className = 'bi bi-eye-slash'; }
+        else { p.type = 'password'; i.className = 'bi bi-eye'; }
+    });
+</script>
+{% endblock %}

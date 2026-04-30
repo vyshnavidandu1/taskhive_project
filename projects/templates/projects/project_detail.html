@@ -1,0 +1,268 @@
+{% extends 'base.html' %}
+{% block title %}{{ project.name }}{% endblock %}
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'project_list' %}">Projects</a></li>
+<li class="breadcrumb-item active">{{ project.name }}</li>
+{% endblock %}
+
+{% block content %}
+<!-- Project Header -->
+<div class="page-header">
+    <div class="d-flex align-items-center gap-3">
+        <div class="project-detail-icon">{{ project.name|first|upper }}</div>
+        <div>
+            <h1 class="page-title mb-1">{{ project.name }}</h1>
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <span class="badge status-badge status-badge--{{ project.status }}">{{ project.get_status_display }}</span>
+                {% if project.is_overdue %}<span class="badge bg-danger">Overdue</span>{% endif %}
+                <span class="text-muted small">Owner: {{ project.owner.get_full_name|default:project.owner.username }}</span>
+            </div>
+        </div>
+    </div>
+    <div class="d-flex gap-2">
+        {% if can_manage %}
+        <a href="{% url 'task_create' project.pk %}" class="btn btn-primary">
+            <i class="bi bi-plus-lg me-1"></i>Add Task
+        </a>
+        <a href="{% url 'project_edit' project.pk %}" class="btn btn-outline-secondary">
+            <i class="bi bi-pencil me-1"></i>Edit
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Stats Row -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="mini-stat">
+            <span class="mini-stat__value">{{ task_stats.total }}</span>
+            <span class="mini-stat__label">Total Tasks</span>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="mini-stat mini-stat--blue">
+            <span class="mini-stat__value">{{ task_stats.in_progress }}</span>
+            <span class="mini-stat__label">In Progress</span>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="mini-stat mini-stat--green">
+            <span class="mini-stat__value">{{ task_stats.completed }}</span>
+            <span class="mini-stat__label">Completed</span>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="mini-stat mini-stat--orange">
+            <span class="mini-stat__value">{{ project.progress_percentage }}%</span>
+            <span class="mini-stat__label">Progress</span>
+        </div>
+    </div>
+</div>
+
+<!-- Progress Bar -->
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="d-flex justify-content-between mb-2">
+            <span class="fw-semibold">Overall Progress</span>
+            <span class="fw-bold text-primary">{{ project.progress_percentage }}%</span>
+        </div>
+        <div class="progress" style="height:12px; border-radius:6px">
+            <div class="progress-bar bg-primary progress-bar-striped progress-bar-animated"
+                 style="width:{{ project.progress_percentage }}%"></div>
+        </div>
+        {% if project.start_date or project.end_date %}
+        <div class="d-flex justify-content-between mt-2 small text-muted">
+            <span>{% if project.start_date %}Started {{ project.start_date|date:"M d, Y" }}{% endif %}</span>
+            <span>{% if project.end_date %}Due {{ project.end_date|date:"M d, Y" }}{% if project.days_remaining is not None %} ({{ project.days_remaining }} days left){% endif %}{% endif %}</span>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Tasks Section -->
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <h6 class="mb-0 fw-semibold"><i class="bi bi-kanban me-2 text-primary"></i>Tasks</h6>
+                <div class="d-flex gap-2 flex-wrap">
+                    <form method="get" class="d-flex gap-2">
+                        <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
+                            <option value="">All Status</option>
+                            {% for val, label in task_status_choices %}
+                            <option value="{{ val }}" {% if status_filter == val %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                        <select name="priority" class="form-select form-select-sm" onchange="this.form.submit()">
+                            <option value="">All Priority</option>
+                            {% for val, label in task_priority_choices %}
+                            <option value="{{ val }}" {% if priority_filter == val %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </form>
+                    {% if request.user.is_admin or project.owner == request.user %}
+                    <a href="{% url 'task_create' project.pk %}" class="btn btn-primary btn-sm">
+                        <i class="bi bi-plus-lg"></i>
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card-body p-0">
+                {% if tasks %}
+                <div class="task-table-wrapper">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th style="width:40%">Task</th>
+                                <th>Assignee</th>
+                                <th>Priority</th>
+                                <th>Status</th>
+                                <th>Deadline</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for task in tasks %}
+                            <tr class="{% if task.is_overdue %}table-danger-subtle{% endif %}">
+                                <td>
+                                    <a href="{% url 'task_detail' task.pk %}" class="fw-medium text-decoration-none">
+                                        {{ task.title }}
+                                    </a>
+                                    {% if task.get_comment_count %}
+                                    <span class="badge bg-light text-muted ms-1">
+                                        <i class="bi bi-chat"></i> {{ task.get_comment_count }}
+                                    </span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if task.assigned_user %}
+                                    <div class="d-flex align-items-center gap-1">
+                                        <div class="avatar-xs">{{ task.assigned_user.first_name|first|upper }}{{ task.assigned_user.last_name|first|upper }}</div>
+                                        <span class="small">{{ task.assigned_user.get_full_name|default:task.assigned_user.username|truncatechars:15 }}</span>
+                                    </div>
+                                    {% else %}
+                                    <span class="text-muted small">Unassigned</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge badge-priority badge-priority--{{ task.priority }}">{{ task.get_priority_display }}</span>
+                                </td>
+                                <td>
+                                    <select class="form-select form-select-sm status-quick-update" data-task-id="{{ task.pk }}" style="min-width:110px">
+                                        {% for val, label in task_status_choices %}
+                                        <option value="{{ val }}" {% if task.status == val %}selected{% endif %}>{{ label }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </td>
+                                <td>
+                                    {% if task.deadline %}
+                                    <span class="small {% if task.is_overdue %}text-danger fw-semibold{% else %}text-muted{% endif %}">
+                                        {{ task.deadline|date:"M d" }}
+                                    </span>
+                                    {% else %}—{% endif %}
+                                </td>
+                                <td class="text-end">
+                                    <a href="{% url 'task_detail' task.pk %}" class="btn btn-ghost btn-sm" title="View">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="empty-state py-5">
+                    <i class="bi bi-clipboard-plus"></i>
+                    <p>No tasks{% if status_filter or priority_filter %} match the selected filters{% endif %}.</p>
+                    {% if can_manage %}
+                    <a href="{% url 'task_create' project.pk %}" class="btn btn-primary btn-sm">Add First Task</a>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+        <!-- Team Members -->
+        <div class="card mb-4">
+            <div class="card-header"><h6 class="mb-0 fw-semibold"><i class="bi bi-people me-2 text-info"></i>Team</h6></div>
+            <div class="card-body">
+                {% for member in members %}
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <div class="avatar-sm">{{ member.first_name|first|upper }}{{ member.last_name|first|upper }}</div>
+                    <div>
+                        <div class="fw-medium small">{{ member.get_full_name|default:member.username }}</div>
+                        <div class="text-muted" style="font-size:11px">
+                            {% if member == project.owner %}Owner{% else %}Member{% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-muted small mb-0">No team members.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Description -->
+        {% if project.description %}
+        <div class="card mb-4">
+            <div class="card-header"><h6 class="mb-0 fw-semibold">Description</h6></div>
+            <div class="card-body">
+                <p class="text-muted small mb-0">{{ project.description }}</p>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Activity -->
+        <div class="card">
+            <div class="card-header"><h6 class="mb-0 fw-semibold"><i class="bi bi-activity me-2 text-success"></i>Activity</h6></div>
+            <div class="card-body p-0">
+                {% if activities %}
+                <ul class="activity-feed activity-feed--compact">
+                    {% for a in activities %}
+                    <li class="activity-feed__item">
+                        <div class="activity-feed__avatar activity-feed__avatar--sm">
+                            {% if a.user %}{{ a.user.first_name|first|upper }}{% else %}?{% endif %}
+                        </div>
+                        <div class="activity-feed__body">
+                            <p class="activity-feed__text small">{{ a.action }}</p>
+                            <time class="activity-feed__time">{{ a.created_at|timesince }} ago</time>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <div class="empty-state py-3"><p class="small mb-0">No activity yet.</p></div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.querySelectorAll('.status-quick-update').forEach(function(select) {
+    select.addEventListener('change', function() {
+        const taskId = this.dataset.taskId;
+        const newStatus = this.value;
+        const csrfToken = document.cookie.match(/csrftoken=([^;]+)/)?.[1] || '';
+        fetch(`/tasks/${taskId}/status/`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRFToken': csrfToken},
+            body: `status=${newStatus}`
+        }).then(r => r.json()).then(data => {
+            if (data.error) { alert(data.error); location.reload(); }
+            else {
+                const row = select.closest('tr');
+                if (data.status === 'completed') row.classList.add('table-success');
+                else row.classList.remove('table-success');
+            }
+        }).catch(() => location.reload());
+    });
+});
+</script>
+{% endblock %}

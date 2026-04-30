@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+{% block title %}Projects{% endblock %}
+{% block breadcrumb %}<li class="breadcrumb-item active">Projects</li>{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Projects</h1>
+        <p class="page-subtitle">{{ projects.count }} project{{ projects.count|pluralize }}</p>
+    </div>
+    {% if request.user.is_manager %}
+    <a href="{% url 'project_create' %}" class="btn btn-primary">
+        <i class="bi bi-plus-lg me-1"></i>New Project
+    </a>
+    {% endif %}
+</div>
+
+<!-- Filters -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col-md-4">
+                <input type="text" name="q" value="{{ query }}" class="form-control" placeholder="Search projects...">
+            </div>
+            <div class="col-md-3">
+                <select name="status" class="form-select">
+                    <option value="">All Statuses</option>
+                    {% for val, label in status_choices %}
+                    <option value="{{ val }}" {% if selected_status == val %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select name="sort" class="form-select">
+                    <option value="-created_at" {% if sort == '-created_at' %}selected{% endif %}>Newest First</option>
+                    <option value="created_at" {% if sort == 'created_at' %}selected{% endif %}>Oldest First</option>
+                    <option value="name" {% if sort == 'name' %}selected{% endif %}>Name A–Z</option>
+                    <option value="-name" {% if sort == '-name' %}selected{% endif %}>Name Z–A</option>
+                    <option value="end_date" {% if sort == 'end_date' %}selected{% endif %}>Deadline</option>
+                </select>
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-primary"><i class="bi bi-search me-1"></i>Filter</button>
+                <a href="{% url 'project_list' %}" class="btn btn-outline-secondary ms-1">Clear</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% if projects %}
+<div class="row g-4">
+    {% for project in projects %}
+    <div class="col-md-6 col-xl-4">
+        <div class="project-card">
+            <div class="project-card__header">
+                <div class="project-card__icon project-icon--{{ forloop.counter }}">
+                    {{ project.name|first|upper }}
+                </div>
+                <div class="project-card__title-group">
+                    <h5 class="project-card__title">
+                        <a href="{% url 'project_detail' project.pk %}">{{ project.name }}</a>
+                    </h5>
+                    <span class="badge status-badge status-badge--{{ project.status }}">{{ project.get_status_display }}</span>
+                </div>
+                {% if request.user.is_admin or project.owner == request.user %}
+                <div class="dropdown ms-auto">
+                    <button class="btn btn-ghost btn-sm" data-bs-toggle="dropdown"><i class="bi bi-three-dots-vertical"></i></button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="{% url 'project_detail' project.pk %}"><i class="bi bi-eye me-2"></i>View</a></li>
+                        <li><a class="dropdown-item" href="{% url 'project_edit' project.pk %}"><i class="bi bi-pencil me-2"></i>Edit</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item text-danger" href="{% url 'project_delete' project.pk %}"><i class="bi bi-trash me-2"></i>Delete</a></li>
+                    </ul>
+                </div>
+                {% endif %}
+            </div>
+
+            {% if project.description %}
+            <p class="project-card__desc">{{ project.description|truncatechars:80 }}</p>
+            {% endif %}
+
+            <div class="project-card__progress mb-3">
+                <div class="d-flex justify-content-between mb-1">
+                    <span class="small text-muted">Progress</span>
+                    <span class="small fw-semibold">{{ project.progress_percentage }}%</span>
+                </div>
+                <div class="progress" style="height:6px">
+                    <div class="progress-bar bg-primary" style="width:{{ project.progress_percentage }}%"></div>
+                </div>
+            </div>
+
+            <div class="project-card__meta">
+                <span class="project-card__stat"><i class="bi bi-list-task"></i> {{ project.task_count }} tasks</span>
+                {% if project.end_date %}
+                <span class="project-card__stat {% if project.is_overdue %}text-danger{% endif %}">
+                    <i class="bi bi-calendar3"></i> {{ project.end_date|date:"M d, Y" }}
+                </span>
+                {% endif %}
+            </div>
+
+            <div class="project-card__footer">
+                <div class="project-card__owner">
+                    <div class="avatar-xs">{{ project.owner.first_name|first|upper }}{{ project.owner.last_name|first|upper }}</div>
+                    <span class="small text-muted">{{ project.owner.get_full_name|default:project.owner.username }}</span>
+                </div>
+                <a href="{% url 'project_detail' project.pk %}" class="btn btn-sm btn-outline-primary">
+                    View <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="empty-state empty-state--page">
+    <i class="bi bi-folder-x"></i>
+    <h4>No projects found</h4>
+    <p>{% if query %}No results for "{{ query }}".{% else %}You don't have any projects yet.{% endif %}</p>
+    {% if request.user.is_manager %}
+    <a href="{% url 'project_create' %}" class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i>Create First Project</a>
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}

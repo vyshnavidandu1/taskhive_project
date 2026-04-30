@@ -1,0 +1,256 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Dashboard</li>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Dashboard</h1>
+        <p class="page-subtitle">Welcome back, {{ request.user.first_name|default:request.user.username }}! Here's what's happening.</p>
+    </div>
+</div>
+
+<!-- Stat Cards -->
+<div class="row g-4 mb-4">
+    <div class="col-6 col-xl-3">
+        <div class="stat-card stat-card--blue">
+            <div class="stat-card__icon"><i class="bi bi-folder2-open"></i></div>
+            <div class="stat-card__body">
+                <span class="stat-card__value">{{ total_projects }}</span>
+                <span class="stat-card__label">Total Projects</span>
+            </div>
+            <div class="stat-card__sub">{{ active_projects }} active</div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="stat-card stat-card--purple">
+            <div class="stat-card__icon"><i class="bi bi-list-task"></i></div>
+            <div class="stat-card__body">
+                <span class="stat-card__value">{{ total_tasks }}</span>
+                <span class="stat-card__label">Total Tasks</span>
+            </div>
+            <div class="stat-card__sub">{{ in_progress_tasks }} in progress</div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="stat-card stat-card--green">
+            <div class="stat-card__icon"><i class="bi bi-check2-circle"></i></div>
+            <div class="stat-card__body">
+                <span class="stat-card__value">{{ completed_tasks }}</span>
+                <span class="stat-card__label">Completed</span>
+            </div>
+            <div class="stat-card__sub">
+                {% if total_tasks %}{{ completed_tasks|floatformat:0 }}/{{ total_tasks }}{% else %}—{% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="stat-card stat-card--red">
+            <div class="stat-card__icon"><i class="bi bi-exclamation-triangle"></i></div>
+            <div class="stat-card__body">
+                <span class="stat-card__value">{{ overdue_tasks }}</span>
+                <span class="stat-card__label">Overdue</span>
+            </div>
+            <div class="stat-card__sub">{{ todo_tasks }} to-do</div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <!-- My Tasks -->
+    <div class="col-lg-7">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0 fw-semibold"><i class="bi bi-person-check me-2 text-primary"></i>My Open Tasks</h6>
+                <a href="{% url 'my_tasks' %}" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
+            <div class="card-body p-0">
+                {% if my_tasks %}
+                <div class="task-list">
+                    {% for task in my_tasks %}
+                    <div class="task-list-item">
+                        <div class="task-list-item__status">
+                            <span class="badge bg-{{ task.status_color }}">{{ task.get_status_display }}</span>
+                        </div>
+                        <div class="task-list-item__body">
+                            <a href="{% url 'task_detail' task.pk %}" class="task-list-item__title">{{ task.title }}</a>
+                            <span class="task-list-item__project">{{ task.project.name }}</span>
+                        </div>
+                        <div class="task-list-item__meta">
+                            <span class="badge badge-priority badge-priority--{{ task.priority }}">{{ task.get_priority_display }}</span>
+                            {% if task.deadline %}
+                            <span class="task-deadline {% if task.is_overdue %}overdue{% endif %}">
+                                <i class="bi bi-calendar3"></i>
+                                {{ task.deadline|date:"M d" }}
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="empty-state py-5">
+                    <i class="bi bi-check2-all"></i>
+                    <p>You have no open tasks. Great work!</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Priority Breakdown + Upcoming Deadlines -->
+    <div class="col-lg-5">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0 fw-semibold"><i class="bi bi-bar-chart-fill me-2 text-warning"></i>Priority Breakdown</h6>
+            </div>
+            <div class="card-body">
+                <div class="priority-bar-item mb-3">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="small fw-medium text-danger">High / Critical</span>
+                        <span class="small text-muted">{{ high_priority }}</span>
+                    </div>
+                    <div class="progress" style="height:6px">
+                        <div class="progress-bar bg-danger" style="width: {% if total_tasks %}{% widthratio high_priority total_tasks 100 %}{% else %}0{% endif %}%"></div>
+                    </div>
+                </div>
+                <div class="priority-bar-item mb-3">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="small fw-medium text-warning">Medium</span>
+                        <span class="small text-muted">{{ medium_priority }}</span>
+                    </div>
+                    <div class="progress" style="height:6px">
+                        <div class="progress-bar bg-warning" style="width: {% if total_tasks %}{% widthratio medium_priority total_tasks 100 %}{% else %}0{% endif %}%"></div>
+                    </div>
+                </div>
+                <div class="priority-bar-item">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="small fw-medium text-success">Low</span>
+                        <span class="small text-muted">{{ low_priority }}</span>
+                    </div>
+                    <div class="progress" style="height:6px">
+                        <div class="progress-bar bg-success" style="width: {% if total_tasks %}{% widthratio low_priority total_tasks 100 %}{% else %}0{% endif %}%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0 fw-semibold"><i class="bi bi-clock-history me-2 text-info"></i>Upcoming Deadlines</h6>
+            </div>
+            <div class="card-body p-0">
+                {% if upcoming_tasks %}
+                <ul class="deadline-list">
+                    {% for task in upcoming_tasks %}
+                    <li class="deadline-list__item">
+                        <div class="deadline-list__dot deadline-list__dot--{{ task.priority }}"></div>
+                        <div class="deadline-list__body">
+                            <a href="{% url 'task_detail' task.pk %}">{{ task.title|truncatechars:35 }}</a>
+                            <small class="text-muted d-block">{{ task.project.name }}</small>
+                        </div>
+                        <div class="deadline-list__date">
+                            <span class="{% if task.days_until_deadline <= 1 %}text-danger fw-semibold{% elif task.days_until_deadline <= 3 %}text-warning fw-semibold{% else %}text-muted{% endif %}">
+                                {% if task.days_until_deadline == 0 %}Today
+                                {% elif task.days_until_deadline == 1 %}Tomorrow
+                                {% else %}{{ task.deadline|date:"M d" }}{% endif %}
+                            </span>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <div class="empty-state py-4">
+                    <i class="bi bi-calendar-check"></i>
+                    <p class="mb-0">No upcoming deadlines.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Projects + Activity -->
+<div class="row g-4">
+    <div class="col-lg-7">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0 fw-semibold"><i class="bi bi-folder2 me-2 text-primary"></i>Recent Projects</h6>
+                <a href="{% url 'project_list' %}" class="btn btn-sm btn-outline-primary">All Projects</a>
+            </div>
+            <div class="card-body p-0">
+                {% if recent_projects %}
+                <div class="project-list">
+                    {% for project in recent_projects %}
+                    <div class="project-list-item">
+                        <div class="project-list-item__icon project-icon--{{ forloop.counter }}">
+                            {{ project.name|first|upper }}
+                        </div>
+                        <div class="project-list-item__body">
+                            <a href="{% url 'project_detail' project.pk %}" class="project-list-item__name">{{ project.name }}</a>
+                            <div class="project-list-item__progress">
+                                <div class="progress" style="height:4px; width:120px">
+                                    <div class="progress-bar bg-primary" style="width:{{ project.progress_percentage }}%"></div>
+                                </div>
+                                <span class="small text-muted ms-2">{{ project.progress_percentage }}%</span>
+                            </div>
+                        </div>
+                        <div class="project-list-item__meta">
+                            <span class="badge status-badge status-badge--{{ project.status }}">{{ project.get_status_display }}</span>
+                            <small class="text-muted">{{ project.total_tasks }} tasks</small>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="empty-state py-5">
+                    <i class="bi bi-folder-plus"></i>
+                    <p>No projects yet.</p>
+                    {% if request.user.is_manager %}
+                    <a href="{% url 'project_create' %}" class="btn btn-primary btn-sm">Create Project</a>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0 fw-semibold"><i class="bi bi-activity me-2 text-success"></i>Recent Activity</h6>
+            </div>
+            <div class="card-body p-0">
+                {% if activities %}
+                <ul class="activity-feed">
+                    {% for activity in activities %}
+                    <li class="activity-feed__item">
+                        <div class="activity-feed__avatar">
+                            {% if activity.user %}
+                                {{ activity.user.first_name|first|upper }}{{ activity.user.last_name|first|upper }}
+                            {% else %}—{% endif %}
+                        </div>
+                        <div class="activity-feed__body">
+                            <p class="activity-feed__text">
+                                <strong>{% if activity.user %}{{ activity.user.get_full_name|default:activity.user.username }}{% else %}System{% endif %}</strong>
+                                {{ activity.action }}
+                            </p>
+                            <time class="activity-feed__time">{{ activity.created_at|timesince }} ago</time>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <div class="empty-state py-5">
+                    <i class="bi bi-clock-history"></i>
+                    <p>No recent activity.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

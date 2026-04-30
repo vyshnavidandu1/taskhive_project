@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+{% block title %}Manage Users{% endblock %}
+{% block breadcrumb %}<li class="breadcrumb-item active">Users</li>{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Manage Users</h1>
+        <p class="page-subtitle">{{ users.count }} total users</p>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col-md-5">
+                <input type="text" name="q" value="{{ query }}" class="form-control" placeholder="Search by name, email or username...">
+            </div>
+            <div class="col-md-3">
+                <select name="role" class="form-select">
+                    <option value="">All Roles</option>
+                    <option value="admin" {% if selected_role == 'admin' %}selected{% endif %}>Admin</option>
+                    <option value="manager" {% if selected_role == 'manager' %}selected{% endif %}>Project Manager</option>
+                    <option value="member" {% if selected_role == 'member' %}selected{% endif %}>Team Member</option>
+                </select>
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-primary"><i class="bi bi-search me-1"></i>Filter</button>
+                <a href="{% url 'user_list' %}" class="btn btn-outline-secondary ms-1">Clear</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Status</th>
+                        <th>Joined</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for u in users %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="avatar-sm">{{ u.first_name|first|upper }}{{ u.last_name|first|upper }}</div>
+                                <div>
+                                    <div class="fw-medium">{{ u.get_full_name|default:u.username }}</div>
+                                    <small class="text-muted">@{{ u.username }}</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="text-muted">{{ u.email|default:"—" }}</td>
+                        <td><span class="badge bg-secondary-subtle text-secondary">{{ u.get_role_display }}</span></td>
+                        <td>
+                            {% if u.is_active %}
+                            <span class="badge bg-success-subtle text-success">Active</span>
+                            {% else %}
+                            <span class="badge bg-danger-subtle text-danger">Inactive</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-muted small">{{ u.date_joined|date:"M d, Y" }}</td>
+                        <td class="text-end">
+                            <a href="{% url 'user_edit' u.pk %}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="6" class="text-center text-muted py-4">No users found.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

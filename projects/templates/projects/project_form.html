@@ -1,0 +1,199 @@
+{% extends 'base.html' %}
+{% block title %}{{ action }} Project{% endblock %}
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'project_list' %}">Projects</a></li>
+<li class="breadcrumb-item active">{{ action }} Project</li>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">{{ action }} Project</h1>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-body p-4">
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    <div class="row g-3">
+
+                        <div class="col-12">
+                            <label class="form-label">Project Name <span style="color:#f87171">*</span></label>
+                            {{ form.name }}
+                            {% if form.name.errors %}<div class="small mt-1" style="color:#f87171">{{ form.name.errors.0 }}</div>{% endif %}
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label">Description</label>
+                            {{ form.description }}
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label">Status</label>
+                            {{ form.status }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Start Date</label>
+                            {{ form.start_date }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">End Date</label>
+                            {{ form.end_date }}
+                            {% if form.non_field_errors %}<div class="small mt-1" style="color:#f87171">{{ form.non_field_errors.0 }}</div>{% endif %}
+                        </div>
+
+                        <!-- Team Members - Custom Styled -->
+                        <div class="col-12">
+                            <label class="form-label">
+                                <i class="bi bi-people me-1" style="color:#818cf8"></i>
+                                Team Members
+                            </label>
+                            <p class="small mb-2" style="color:#64748b">Select users to add to this project</p>
+                            <div class="team-picker-grid">
+                                {% for checkbox in form.team_members_input %}
+                                <label class="team-member-option {% if checkbox.data.selected %}selected{% endif %}">
+                                    <input type="checkbox"
+                                           name="{{ form.team_members_input.html_name }}"
+                                           value="{{ checkbox.data.value }}"
+                                           {% if checkbox.data.selected %}checked{% endif %}
+                                           class="team-member-checkbox">
+                                    <div class="team-member-avatar">
+                                        {{ checkbox.data.label|slice:":1"|upper }}
+                                    </div>
+                                    <div class="team-member-info">
+                                        <span class="team-member-name">{{ checkbox.data.label }}</span>
+                                    </div>
+                                    <div class="team-member-check">
+                                        <i class="bi bi-check-circle-fill"></i>
+                                    </div>
+                                </label>
+                                {% empty %}
+                                <p style="color:#64748b;font-size:13px">No users available.</p>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="d-flex gap-2 mt-4">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg me-1"></i>{{ action }} Project
+                        </button>
+                        <a href="{% if project %}{% url 'project_detail' project.pk %}{% else %}{% url 'project_list' %}{% endif %}"
+                           class="btn btn-outline-secondary">Cancel</a>
+                        {% if project and request.user.is_admin %}
+                        <a href="{% url 'project_delete' project.pk %}" class="btn btn-outline-danger ms-auto">
+                            <i class="bi bi-trash me-1"></i>Delete
+                        </a>
+                        {% endif %}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.team-picker-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 10px;
+    max-height: 320px;
+    overflow-y: auto;
+    padding: 4px 2px;
+}
+
+.team-member-option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    user-select: none;
+}
+
+.team-member-option:hover {
+    background: rgba(99,102,241,0.1);
+    border-color: rgba(99,102,241,0.3);
+    transform: translateY(-1px);
+}
+
+.team-member-option.selected,
+.team-member-option:has(input:checked) {
+    background: rgba(99,102,241,0.15);
+    border-color: rgba(99,102,241,0.5);
+    box-shadow: 0 0 0 2px rgba(99,102,241,0.2);
+}
+
+/* Hide the raw checkbox */
+.team-member-checkbox {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+}
+
+.team-member-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 800;
+    font-size: 15px;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(99,102,241,0.3);
+}
+
+.team-member-info {
+    flex: 1;
+    overflow: hidden;
+}
+
+.team-member-name {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #f1f5f9 !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.team-member-check {
+    color: transparent;
+    font-size: 18px;
+    flex-shrink: 0;
+    transition: color 0.2s;
+}
+
+.team-member-option:has(input:checked) .team-member-check {
+    color: #818cf8;
+}
+
+.team-member-option:has(input:checked) .team-member-avatar {
+    background: linear-gradient(135deg, #6366f1, #ec4899);
+}
+</style>
+
+<script>
+/* Make entire card clickable to toggle checkbox */
+document.querySelectorAll('.team-member-option').forEach(function(card) {
+    card.addEventListener('click', function() {
+        var cb = this.querySelector('.team-member-checkbox');
+        cb.checked = !cb.checked;
+        this.classList.toggle('selected', cb.checked);
+    });
+});
+</script>
+{% endblock %}

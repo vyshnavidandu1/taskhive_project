@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+{% block title %}Profile{% endblock %}
+{% block breadcrumb %}<li class="breadcrumb-item active">Profile</li>{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">My Profile</h1>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-4">
+        <div class="card text-center">
+            <div class="card-body py-5">
+                <div class="profile-avatar mx-auto mb-3">
+                    {% if profile_user.avatar %}
+                        <img src="{{ profile_user.avatar.url }}" alt="{{ profile_user.username }}" class="rounded-circle" width="96" height="96" style="object-fit:cover">
+                    {% else %}
+                        <div class="avatar-placeholder-lg">
+                            {{ profile_user.first_name|first|upper }}{{ profile_user.last_name|first|upper }}
+                        </div>
+                    {% endif %}
+                </div>
+                <h4 class="fw-bold mb-1">{{ profile_user.get_full_name|default:profile_user.username }}</h4>
+                <span class="badge bg-primary-subtle text-primary mb-3">{{ profile_user.get_role_display }}</span>
+                {% if profile_user.bio %}
+                <p class="text-muted small">{{ profile_user.bio }}</p>
+                {% endif %}
+                <div class="d-flex gap-2 justify-content-center">
+                    <a href="{% url 'profile_edit' %}" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-pencil me-1"></i>Edit Profile
+                    </a>
+                    <a href="{% url 'change_password' %}" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-lock me-1"></i>Password
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <div class="card mb-4">
+            <div class="card-header"><h6 class="mb-0 fw-semibold">Account Details</h6></div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-sm-6">
+                        <label class="form-label text-muted small">Username</label>
+                        <p class="fw-medium mb-0">{{ profile_user.username }}</p>
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label text-muted small">Email</label>
+                        <p class="fw-medium mb-0">{{ profile_user.email|default:"—" }}</p>
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label text-muted small">Phone</label>
+                        <p class="fw-medium mb-0">{{ profile_user.phone|default:"—" }}</p>
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label text-muted small">Member Since</label>
+                        <p class="fw-medium mb-0">{{ profile_user.date_joined|date:"F j, Y" }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-sm-4">
+                <div class="stat-card stat-card--blue">
+                    <div class="stat-card__icon"><i class="bi bi-folder2"></i></div>
+                    <div class="stat-card__body">
+                        <span class="stat-card__value">{{ profile_user.owned_projects.count }}</span>
+                        <span class="stat-card__label">Projects Owned</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-4">
+                <div class="stat-card stat-card--purple">
+                    <div class="stat-card__icon"><i class="bi bi-list-task"></i></div>
+                    <div class="stat-card__body">
+                        <span class="stat-card__value">{{ profile_user.assigned_tasks.count }}</span>
+                        <span class="stat-card__label">Tasks Assigned</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-4">
+                <div class="stat-card stat-card--green">
+                    <div class="stat-card__icon"><i class="bi bi-check2-circle"></i></div>
+                    <div class="stat-card__body">
+                        <span class="stat-card__value">{{ profile_user.assigned_tasks.all|length }}</span>
+                        <span class="stat-card__label">Total Comments</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

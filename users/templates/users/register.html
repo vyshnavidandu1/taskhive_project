@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% block title %}Register{% endblock %}
+
+{% block auth_content %}
+<div class="auth-orb auth-orb-1"></div>
+<div class="auth-orb auth-orb-2"></div>
+<div class="auth-orb auth-orb-3"></div>
+
+<div class="auth-page">
+    <div class="auth-card auth-card--wide">
+        <div class="auth-brand">
+            <div class="auth-brand__icon"><i class="bi bi-hexagon-fill"></i></div>
+            <h1 class="auth-brand__name">TaskHive</h1>
+            <p class="auth-brand__tagline">Create your account</p>
+        </div>
+
+        <h2 class="auth-title">Get started</h2>
+        <p class="auth-subtitle">Join your team's workspace</p>
+
+        <form method="post" novalidate>
+            {% csrf_token %}
+            <div class="row g-3">
+                <div class="col-6">
+                    <label class="form-label">First Name</label>
+                    {{ form.first_name }}
+                    {% if form.first_name.errors %}<div class="small mt-1" style="color:#f87171">{{ form.first_name.errors.0 }}</div>{% endif %}
+                </div>
+                <div class="col-6">
+                    <label class="form-label">Last Name</label>
+                    {{ form.last_name }}
+                    {% if form.last_name.errors %}<div class="small mt-1" style="color:#f87171">{{ form.last_name.errors.0 }}</div>{% endif %}
+                </div>
+                <div class="col-12">
+                    <label class="form-label">Username</label>
+                    {{ form.username }}
+                    {% if form.username.errors %}<div class="small mt-1" style="color:#f87171">{{ form.username.errors.0 }}</div>{% endif %}
+                </div>
+                <div class="col-12">
+                    <label class="form-label">Email</label>
+                    {{ form.email }}
+                    {% if form.email.errors %}<div class="small mt-1" style="color:#f87171">{{ form.email.errors.0 }}</div>{% endif %}
+                </div>
+                <div class="col-6">
+                    <label class="form-label">Password</label>
+                    {{ form.password1 }}
+                    {% if form.password1.errors %}<div class="small mt-1" style="color:#f87171">{{ form.password1.errors.0 }}</div>{% endif %}
+                </div>
+                <div class="col-6">
+                    <label class="form-label">Confirm Password</label>
+                    {{ form.password2 }}
+                    {% if form.password2.errors %}<div class="small mt-1" style="color:#f87171">{{ form.password2.errors.0 }}</div>{% endif %}
+                </div>
+                {% if form.non_field_errors %}
+                <div class="col-12">
+                    <div class="p-2 rounded" style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:#f87171;font-size:13px">
+                        {{ form.non_field_errors.0 }}
+                    </div>
+                </div>
+                {% endif %}
+                <div class="col-12 mt-2">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-person-plus me-2"></i>Create Account
+                    </button>
+                </div>
+            </div>
+        </form>
+
+        <p class="auth-footer-text mt-4">
+            Already have an account? <a href="{% url 'login' %}">Sign in &rarr;</a>
+        </p>
+    </div>
+</div>
+{% endblock %}
