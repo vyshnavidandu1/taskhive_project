@@ -22,6 +22,13 @@ A production-ready, fully local web application for managing projects, tracking 
 
 ---
 
+## Screenshots
+
+![Dashboard](Dashboard.png)
+![Projects](projects.png)
+![Help Request](help-request.png)
+
+
 ## 📋 Requirements
 
 - Python 3.10+
