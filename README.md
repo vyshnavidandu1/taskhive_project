@@ -28,6 +28,8 @@ A production-ready, fully local web application for managing projects, tracking 
 ![Projects](projects.png)
 ![Help Request](help-request.png)
 
+🔗 **Live demo:** https://vyshnavidandu.pythonanywhere.com
+Demo login: `varsha` / `demo1234` (Project Manager) · `hima` / `demo1234` (Team Member)
 
 ## 📋 Requirements
 
