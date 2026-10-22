@@ -18,6 +18,7 @@ A production-ready, fully local web application for managing projects, tracking 
 | **REST API** | DRF-powered JSON endpoints |
 | **Admin Panel** | Full Django admin for all models |
 | **AJAX Status Updates** | Update task status without page reload |
+| **Help Requests** | Send private messages to Projectmanager and Admin |
 
 ---
 
